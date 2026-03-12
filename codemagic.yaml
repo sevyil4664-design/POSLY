@@ -1,0 +1,22 @@
+workflows:
+  ios-workflow:
+    name: Posly iOS Derleme
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      node: latest
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Bağımlılıkları Yükle
+        script: |
+          npm install
+      - name: Capacitor Senkronizasyonu
+        script: |
+          npx cap sync ios
+      - name: iOS Build (Sertifikasız - Debug)
+        script: |
+          # Sertifika olmadığı için sadece derleme kontrolü yapar, IPA üretmez.
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/**/App.app
