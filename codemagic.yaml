@@ -9,14 +9,17 @@ workflows:
       cocoapods: default
     scripts:
       - name: Bağımlılıkları Yükle
-        script: |
-          npm install
+        script: npm install
       - name: Capacitor Senkronizasyonu
+        script: npx cap sync ios
+      - name: IPA Oluştur
         script: |
-          npx cap sync ios
-      - name: iOS Build (Sertifikasız - Debug)
-        script: |
-          # Sertifika olmadığı için sadece derleme kontrolü yapar, IPA üretmez.
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO
+          xcodebuild build -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO
+          # IPA paketleme adımları
+          mkdir -p build/ios/ipa
+          cd build/ios/ipa
+          mkdir Payload
+          cp -r $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Release-iphoneos/App.app Payload
+          zip -r Posly.ipa Payload
     artifacts:
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/**/App.app
+      - build/ios/ipa/Posly.ipa
