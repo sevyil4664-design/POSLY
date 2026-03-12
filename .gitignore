@@ -1,6 +1,5 @@
 node_modules/
 dist/
-www/
 ios/App/public/
 ios/App/build/
 .DS_Store

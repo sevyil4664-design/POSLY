@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="color-scheme" content="dark">
+    <title>Posly</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- Google Auth -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/app.css?v=1.0.6">
+</head>
+<body>
+    <div id="app">
+        <!-- ═══ SPLASH SCREEN ═══ -->
+        <div id="splash-screen" class="page active">
+            <div class="splash-content">
+                <div class="splash-logo">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <rect width="80" height="80" rx="20" fill="url(#splashGrad)"/>
+                        <text x="50%" y="38" text-anchor="middle" fill="white" font-family="Inter" font-weight="900" font-size="22">POS</text>
+                        <text x="50%" y="58" text-anchor="middle" fill="#F5733D" font-family="Inter" font-weight="900" font-size="22">LY</text>
+                        <defs><linearGradient id="splashGrad" x1="0" y1="0" x2="80" y2="80"><stop stop-color="#2DB55D"/><stop offset="1" stop-color="#1a8a42"/></linearGradient></defs>
+                    </svg>
+                </div>
+                <div class="splash-spinner"></div>
+            </div>
+        </div>
+
+        <!-- ═══ LOGIN PAGE ═══ -->
+        <div id="page-login" class="page">
+            <div class="login-container">
+                <div class="login-header">
+                    <svg class="login-logo" width="72" height="72" viewBox="0 0 72 72" fill="none">
+                        <rect width="72" height="72" rx="18" fill="url(#loginGrad)"/>
+                        <text x="50%" y="34" text-anchor="middle" fill="white" font-family="Inter" font-weight="900" font-size="20">POS</text>
+                        <text x="50%" y="52" text-anchor="middle" fill="#F5733D" font-family="Inter" font-weight="900" font-size="20">LY</text>
+                        <defs><linearGradient id="loginGrad" x1="0" y1="0" x2="72" y2="72"><stop stop-color="#2DB55D"/><stop offset="1" stop-color="#1a8a42"/></linearGradient></defs>
+                    </svg>
+                    <h1>Posly'ye Hoş Geldiniz</h1>
+                    <p>Restoran yönetiminiz avucunuzda</p>
+                </div>
+
+                <form id="login-form" class="login-form" autocomplete="on">
+                    <div class="input-group">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M22 7l-10 6L2 7"/></svg>
+                        <input type="email" id="login-email" placeholder="E-posta adresi" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+                        <input type="password" id="login-password" placeholder="Şifre" required autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                            <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <div id="login-error" class="login-error"></div>
+                    <button type="submit" class="btn-primary btn-login" id="btn-login">
+                        <span>Giriş Yap</span>
+                        <div class="btn-spinner"></div>
+                    </button>
+                </form>
+
+                <button class="btn-biometric" id="btn-biometric" style="display:none" onclick="biometricLogin()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32">
+                        <path d="M7 3H5a2 2 0 00-2 2v2M17 3h2a2 2 0 012 2v2M7 21H5a2 2 0 01-2-2v-2M17 21h2a2 2 0 002-2v-2"/>
+                        <circle cx="12" cy="10" r="3"/>
+                        <path d="M12 13c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z"/>
+                    </svg>
+                    <span>Face ID ile Giriş</span>
+                </button>
+
+                <a class="forgot-password" onclick="showForgotPassword()">Şifremi Unuttum</a>
+
+                <div class="auth-divider">
+                    <span>veya</span>
+                </div>
+
+                <div id="googleAuthBtn" class="google-login-container"></div>
+            </div>
+        </div>
+
+        <!-- ═══ MAIN APP SHELL ═══ -->
+        <div id="app-shell" class="page">
+            <!-- Navigation Bar -->
+            <header class="nav-bar" id="nav-bar">
+                <div class="nav-left">
+                    <h2 id="nav-title">Panel</h2>
+                </div>
+                <div class="nav-right">
+                    <div class="restaurant-status-badge" id="restaurant-status-badge" onclick="toggleRestaurantStatus()">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Açık</span>
+                    </div>
+                    <button class="nav-btn" id="btn-notifications" onclick="showNotifications()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                        <span class="notification-badge" id="notification-count" style="display:none">0</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content Area -->
+            <main class="content-area" id="content-area">
+                <!-- ═══ DASHBOARD ═══ -->
+                <section id="section-dashboard" class="section active">
+                    <div class="section-scroll">
+                        <!-- Welcome Card -->
+                        <div class="welcome-card">
+                            <div class="welcome-text">
+                                <p class="welcome-greeting" id="welcome-greeting">Merhaba 👋</p>
+                                <h3 id="welcome-restaurant">Restoran Adı</h3>
+                            </div>
+                            <div class="welcome-avatar" id="welcome-avatar">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Card -->
+                        <div class="card card-revenue" id="card-revenue">
+                            <div class="card-header">
+                                <div class="card-icon revenue-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                                </div>
+                                <span class="card-label">Günlük Ciro</span>
+                            </div>
+                            <h2 class="revenue-amount" id="revenue-total">0,00 ₺</h2>
+                            <div class="revenue-breakdown">
+                                <div class="revenue-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" width="16" height="16"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                    <span>Nakit</span>
+                                    <strong id="revenue-cash">0 ₺</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" width="16" height="16"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                    <span>K.Kartı</span>
+                                    <strong id="revenue-card">0 ₺</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                    <span>Sipariş</span>
+                                    <strong id="revenue-count">0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Platform Status Cards -->
+                        <h3 class="section-title">Platform Durumları</h3>
+                        <div class="platform-grid" id="platform-grid">
+                            <div class="platform-card" data-platform="yemeksepeti">
+                                <div class="platform-header">
+                                    <img src="img/integrations/yemeksepeti.png" class="platform-logo" alt="Yemeksepeti">
+                                    <span>Yemeksepeti</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-yemeksepeti" onchange="togglePlatform('yemeksepeti', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="platform-card" data-platform="getir">
+                                <div class="platform-header">
+                                    <img src="img/integrations/getir.png" class="platform-logo" alt="Getir Yemek">
+                                    <span>Getir Yemek</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-getir" onchange="togglePlatform('getir', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="platform-card" data-platform="trendyol">
+                                <div class="platform-header">
+                                    <img src="img/integrations/trendyol.png" class="platform-logo" alt="Trendyol">
+                                    <span>Trendyol</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-trendyol" onchange="togglePlatform('trendyol', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="platform-card" data-platform="migros">
+                                <div class="platform-header">
+                                    <img src="img/integrations/migros.png" class="platform-logo" alt="Migros">
+                                    <span>Migros</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-migros" onchange="togglePlatform('migros', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <h3 class="section-title">Hızlı İşlemler</h3>
+                        <div class="quick-actions">
+                            <button class="quick-action-btn" onclick="navigateTo('reports')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span>Z Raporu Gönder</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="navigateTo('support')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span>Destek Talebi</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══ ORDERS ═══ -->
+                <section id="section-orders" class="section">
+                    <div class="section-scroll">
+                        <!-- Segment Control -->
+                        <div class="segment-control" id="order-segments">
+                            <button class="segment-btn active" onclick="filterOrders('active')">Aktif</button>
+                            <button class="segment-btn" onclick="filterOrders('platform')">Platform</button>
+                            <button class="segment-btn" onclick="filterOrders('history')">Geçmiş</button>
+                        </div>
+
+                        <!-- Platform Filter (visible in platform tab) -->
+                        <div class="platform-filter" id="platform-filter" style="display:none">
+                            <button class="filter-chip active" onclick="filterByPlatform('all')">Tümü</button>
+                            <button class="filter-chip" onclick="filterByPlatform('yemeksepeti')">Yemeksepeti</button>
+                            <button class="filter-chip" onclick="filterByPlatform('getir')">Getir</button>
+                            <button class="filter-chip" onclick="filterByPlatform('trendyol')">Trendyol</button>
+                        </div>
+
+                        <!-- Orders List -->
+                        <div id="orders-list" class="orders-list">
+                            <div class="empty-state" id="orders-empty">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M9 5h6l3 4v10a2 2 0 01-2 2H8a2 2 0 01-2-2V9l3-4z"/><line x1="9" y1="5" x2="15" y2="5"/></svg>
+                                <p>Henüz sipariş bulunmuyor</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══ REPORTS ═══ -->
+                <section id="section-reports" class="section">
+                    <div class="section-scroll">
+                        <!-- Daily Summary -->
+                        <div class="card card-dark">
+                            <div class="card-header">
+                                <div class="card-icon report-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                                </div>
+                                <span class="card-label">Günlük Ciro Özeti</span>
+                            </div>
+                            <div class="report-summary" id="report-summary">
+                                <div class="report-row"><span>Toplam Ciro</span><strong id="report-total">0,00 ₺</strong></div>
+                                <div class="report-row"><span>Nakit</span><strong id="report-cash">0,00 ₺</strong></div>
+                                <div class="report-row"><span>Kredi Kartı</span><strong id="report-cc">0,00 ₺</strong></div>
+                                <div class="report-row"><span>Online Platform</span><strong id="report-online">0,00 ₺</strong></div>
+                                <div class="report-row"><span>Sipariş Sayısı</span><strong id="report-count">0</strong></div>
+                                <div class="report-row"><span style="color:var(--red)">İptal Satışlar</span><strong id="report-cancelled" style="color:var(--red)">0,00 ₺</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Chart -->
+                        <div class="card">
+                            <h3 class="card-title">Ödeme Dağılımı</h3>
+                            <div class="bar-chart" id="payment-chart"></div>
+                        </div>
+
+                        <!-- Top Products -->
+                        <div class="card">
+                            <h3 class="card-title">En Çok Satan Ürünler</h3>
+                            <div id="top-products" class="top-products-list"></div>
+                        </div>
+
+                        <!-- Hourly Distribution -->
+                        <div class="card">
+                            <h3 class="card-title">Saatlik Yoğunluk</h3>
+                            <div class="hourly-chart" id="hourly-chart"></div>
+                        </div>
+
+                        <!-- Z Report Button -->
+                        <button class="btn-primary btn-full" onclick="sendZReport()" id="btn-zreport">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            <span>Z Raporu E-posta ile Gönder</span>
+                        </button>
+
+                        <!-- Past Sales -->
+                        <h3 class="section-title" style="margin-top:20px">Geçmiş Satışlar</h3>
+                        <div class="date-filter">
+                            <input type="date" id="report-date-start" class="date-input" onchange="filterSales()">
+                            <span>—</span>
+                            <input type="date" id="report-date-end" class="date-input" onchange="filterSales()">
+                        </div>
+                        <div id="past-sales-list" class="orders-list"></div>
+                    </div>
+                </section>
+
+                <!-- ═══ STAFF ═══ -->
+                <section id="section-staff" class="section">
+                    <div class="section-scroll">
+                        <div id="staff-list" class="staff-list">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                                <p>Personel bilgisi yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══ SUPPORT ═══ -->
+                <section id="section-support" class="section">
+                    <div class="section-scroll">
+                        <!-- New Ticket Button -->
+                        <button class="btn-primary btn-full" onclick="showNewTicketForm()" style="margin-bottom:16px">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                            <span>Yeni Destek Talebi</span>
+                        </button>
+
+                        <!-- Tickets List -->
+                        <div id="tickets-list" class="tickets-list">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                                <p>Destek talebi bulunmuyor</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Tab Bar -->
+            <nav class="tab-bar" id="tab-bar">
+                <button class="tab-item active" onclick="navigateTo('dashboard')" data-tab="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>Panel</span>
+                </button>
+                <button class="tab-item" onclick="navigateTo('orders')" data-tab="orders">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6l3 4v10a2 2 0 01-2 2H8a2 2 0 01-2-2V9l3-4z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+                    <span>Siparişler</span>
+                    <span class="tab-badge" id="orders-badge" style="display:none">0</span>
+                </button>
+                <button class="tab-item" onclick="navigateTo('reports')" data-tab="reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    <span>Raporlar</span>
+                </button>
+                <button class="tab-item" onclick="navigateTo('staff')" data-tab="staff">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    <span>Personel</span>
+                </button>
+                <button class="tab-item" onclick="navigateTo('support')" data-tab="support">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Destek</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- ═══ ORDER DETAIL MODAL ═══ -->
+        <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-sheet" id="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-content" id="modal-content"></div>
+        </div>
+
+        <!-- ═══ NEW TICKET MODAL ═══ -->
+        <div class="modal-overlay" id="ticket-modal-overlay" onclick="closeTicketModal()"></div>
+        <div class="modal-sheet" id="ticket-modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-content">
+                <h3 class="modal-title">Yeni Destek Talebi</h3>
+                <form id="ticket-form" onsubmit="submitTicket(event)">
+                    <div class="input-group">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <input type="text" id="ticket-title" placeholder="Konu başlığı" required>
+                    </div>
+                    <div class="input-group textarea-group">
+                        <textarea id="ticket-description" placeholder="Sorununuzu detaylı açıklayın..." rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full" id="btn-submit-ticket">
+                        <span>Talebi Gönder</span>
+                        <div class="btn-spinner"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ═══ NOTIFICATIONS PANEL ═══ -->
+        <div class="modal-overlay" id="notif-overlay" onclick="closeNotifications()"></div>
+        <div class="modal-sheet" id="notif-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-content">
+                <h3 class="modal-title">Bildirimler</h3>
+                <div id="notifications-list" class="notifications-list">
+                    <div class="empty-state small">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                        <p>Bildirim bulunmuyor</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ TOAST ═══ -->
+        <div class="toast" id="toast">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js?v=1.0.6"></script>
+    <script src="js/pages/login.js?v=1.0.6"></script>
+    <script src="js/pages/dashboard.js?v=1.0.6"></script>
+    <script src="js/pages/orders.js?v=1.0.6"></script>
+    <script src="js/pages/reports.js?v=1.0.6"></script>
+    <script src="js/pages/staff.js?v=1.0.6"></script>
+    <script src="js/pages/support.js?v=1.0.6"></script>
+    <script src="js/app.js?v=1.0.6"></script>
+</body>
+</html>
