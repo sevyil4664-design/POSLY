@@ -44,10 +44,13 @@ function renderStaffList(users) {
         const initials = getInitials(user.firstName, user.lastName);
         const roleClass = getRoleClass(user.role);
         const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+        const avatarHtml = user.profileImage 
+            ? `<img src="${user.profileImage}" alt="${fullName}" />`
+            : initials;
 
         return `
             <div class="staff-card">
-                <div class="staff-avatar">${initials}</div>
+                <div class="staff-avatar">${avatarHtml}</div>
                 <div class="staff-info">
                     <div class="staff-name">${fullName}</div>
                     <div class="staff-email">${user.email || ''}</div>

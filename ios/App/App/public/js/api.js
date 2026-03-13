@@ -99,6 +99,24 @@ async function apiForgotPassword(email) {
     });
 }
 
+async function apiGoogleAuth(data) {
+    const res = await fetch(`${API_BASE}/google-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Google giriş başarısız.');
+    setToken(json.token);
+    setStoredRestaurant(json.restaurant);
+    if (json.user) setStoredUser(json.user);
+    return json;
+}
+
+async function apiGetConfig() {
+    return apiFetch('/config');
+}
+
 // ═══ DATA API ═══
 
 async function apiGetOrders() {

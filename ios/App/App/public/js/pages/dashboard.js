@@ -19,6 +19,11 @@ async function initDashboard() {
         document.getElementById('welcome-restaurant').textContent = restaurant.name || 'Restoran';
     }
 
+    // Avatar
+    if (user && user.profileImage) {
+        document.getElementById('welcome-avatar').innerHTML = `<img src="${user.profileImage}" alt="Profile" />`;
+    }
+
     // Load data in parallel
     await Promise.all([
         loadDashboardOrders(),

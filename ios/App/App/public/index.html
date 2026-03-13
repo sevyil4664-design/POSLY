@@ -17,8 +17,11 @@
     <!-- Socket.IO -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
+    <!-- Google Auth -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <!-- Styles -->
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/app.css?v=1.0.6">
 </head>
 <body>
     <div id="app">
@@ -80,6 +83,12 @@
                 </button>
 
                 <a class="forgot-password" onclick="showForgotPassword()">Şifremi Unuttum</a>
+
+                <div class="auth-divider">
+                    <span>veya</span>
+                </div>
+
+                <div id="googleAuthBtn" class="google-login-container"></div>
             </div>
         </div>
 
@@ -151,7 +160,7 @@
                         <div class="platform-grid" id="platform-grid">
                             <div class="platform-card" data-platform="yemeksepeti">
                                 <div class="platform-header">
-                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none"><circle cx="12" cy="12" r="11" fill="#D42127"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700">YS</text></svg>
+                                    <img src="img/integrations/yemeksepeti.png" class="platform-logo" alt="Yemeksepeti">
                                     <span>Yemeksepeti</span>
                                 </div>
                                 <label class="toggle-switch">
@@ -161,7 +170,7 @@
                             </div>
                             <div class="platform-card" data-platform="getir">
                                 <div class="platform-header">
-                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none"><circle cx="12" cy="12" r="11" fill="#5D3EBC"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700">GY</text></svg>
+                                    <img src="img/integrations/getir.png" class="platform-logo" alt="Getir Yemek">
                                     <span>Getir Yemek</span>
                                 </div>
                                 <label class="toggle-switch">
@@ -171,7 +180,7 @@
                             </div>
                             <div class="platform-card" data-platform="trendyol">
                                 <div class="platform-header">
-                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none"><circle cx="12" cy="12" r="11" fill="#F27A1A"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700">TY</text></svg>
+                                    <img src="img/integrations/trendyol.png" class="platform-logo" alt="Trendyol">
                                     <span>Trendyol</span>
                                 </div>
                                 <label class="toggle-switch">
@@ -181,7 +190,7 @@
                             </div>
                             <div class="platform-card" data-platform="migros">
                                 <div class="platform-header">
-                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none"><circle cx="12" cy="12" r="11" fill="#F58220"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700">MY</text></svg>
+                                    <img src="img/integrations/migros.png" class="platform-logo" alt="Migros">
                                     <span>Migros</span>
                                 </div>
                                 <label class="toggle-switch">
@@ -251,6 +260,7 @@
                                 <div class="report-row"><span>Kredi Kartı</span><strong id="report-cc">0,00 ₺</strong></div>
                                 <div class="report-row"><span>Online Platform</span><strong id="report-online">0,00 ₺</strong></div>
                                 <div class="report-row"><span>Sipariş Sayısı</span><strong id="report-count">0</strong></div>
+                                <div class="report-row"><span style="color:var(--red)">İptal Satışlar</span><strong id="report-cancelled" style="color:var(--red)">0,00 ₺</strong></div>
                             </div>
                         </div>
 
@@ -398,13 +408,13 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/api.js"></script>
-    <script src="js/pages/login.js"></script>
-    <script src="js/pages/dashboard.js"></script>
-    <script src="js/pages/orders.js"></script>
-    <script src="js/pages/reports.js"></script>
-    <script src="js/pages/staff.js"></script>
-    <script src="js/pages/support.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/api.js?v=1.0.6"></script>
+    <script src="js/pages/login.js?v=1.0.6"></script>
+    <script src="js/pages/dashboard.js?v=1.0.6"></script>
+    <script src="js/pages/orders.js?v=1.0.6"></script>
+    <script src="js/pages/reports.js?v=1.0.6"></script>
+    <script src="js/pages/staff.js?v=1.0.6"></script>
+    <script src="js/pages/support.js?v=1.0.6"></script>
+    <script src="js/app.js?v=1.0.6"></script>
 </body>
 </html>

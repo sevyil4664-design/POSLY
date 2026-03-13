@@ -12,6 +12,9 @@ function initLoginPage() {
     // Check if biometric credentials saved
     checkBiometricAvailability();
 
+    // Init Google Auth
+    initGoogleAuth();
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorDiv.textContent = '';
@@ -119,6 +122,49 @@ function showForgotPassword() {
     }).catch(err => {
         document.getElementById('login-error').textContent = err.message;
     });
+}
+
+async function initGoogleAuth() {
+    try {
+        const config = await apiGetConfig();
+        const googleClientId = config.googleClientId;
+
+        if (googleClientId && window.google) {
+            window.google.accounts.id.initialize({
+                client_id: googleClientId,
+                ux_mode: 'popup',
+                callback: async (response) => {
+                    const errorDiv = document.getElementById('login-error');
+                    const btnLogin = document.getElementById('btn-login');
+                    errorDiv.textContent = '';
+                    btnLogin.classList.add('loading');
+
+                    try {
+                        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                        const result = await apiGoogleAuth({
+                            googleId: payload.sub,
+                            email: payload.email,
+                            firstName: payload.given_name || '',
+                            lastName: payload.family_name || '',
+                            profileImage: payload.picture || '',
+                        });
+                        btnLogin.classList.remove('loading');
+                        onLoginSuccess(result);
+                    } catch (err) {
+                        btnLogin.classList.remove('loading');
+                        errorDiv.textContent = err.message || 'Google giriş başarısız.';
+                    }
+                }
+            });
+
+            window.google.accounts.id.renderButton(
+                document.getElementById('googleAuthBtn'),
+                { theme: "outline", size: "large", width: "100%", text: "continue_with" }
+            );
+        }
+    } catch (err) {
+        console.error('Google Config Error:', err);
+    }
 }
 
 // Add shake keyframe

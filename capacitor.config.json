@@ -7,7 +7,6 @@
     "cleartext": false
   },
   "ios": {
-    "contentInset": "always",
     "allowsLinkPreview": false,
     "backgroundColor": "#0a0a0f",
     "preferredContentMode": "mobile",

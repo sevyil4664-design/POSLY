@@ -28,10 +28,10 @@ function calculateReportData(orders) {
 
     const todayOrders = (orders || []).filter(o => {
         const d = new Date(o.createdAt || o.date);
-        return d >= today && d <= todayEnd && o.status !== 'İptal';
+        return d >= today && d <= todayEnd;
     });
 
-    let totalCash = 0, totalCC = 0, totalOnline = 0, totalMeal = 0;
+    let totalCash = 0, totalCC = 0, totalOnline = 0, totalMeal = 0, totalCancelled = 0;
     const productCounts = {};
     const hourlyCounts = new Array(24).fill(0);
 
@@ -44,6 +44,11 @@ function calculateReportData(orders) {
         const src = (o.source || '').toLowerCase();
         const total = o.total || 0;
         const hour = new Date(o.createdAt || o.date).getHours();
+
+        if (o.status === 'İptal') {
+            totalCancelled += total;
+            return;
+        }
 
         hourlyCounts[hour]++;
 
@@ -77,7 +82,8 @@ function calculateReportData(orders) {
     document.getElementById('report-cash').textContent = formatCurrency(totalCash);
     document.getElementById('report-cc').textContent = formatCurrency(totalCC);
     document.getElementById('report-online').textContent = formatCurrency(totalOnline);
-    document.getElementById('report-count').textContent = todayOrders.length.toString();
+    document.getElementById('report-count').textContent = todayOrders.filter(o => o.status !== 'İptal').length.toString();
+    document.getElementById('report-cancelled').textContent = formatCurrency(totalCancelled);
 
     // Payment chart
     renderPaymentChart(grandTotal, totalCash, totalCC, totalOnline, totalMeal);

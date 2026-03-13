@@ -44,7 +44,11 @@ function hideSplash() {
     const splash = document.getElementById('splash-screen');
     splash.style.opacity = '0';
     splash.style.transition = 'opacity 0.4s';
-    setTimeout(() => splash.classList.remove('active'), 400);
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => {
+        splash.classList.remove('active');
+        splash.style.display = 'none';
+    }, 400);
 }
 
 function showPage(pageId) {

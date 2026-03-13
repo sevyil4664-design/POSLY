@@ -90,16 +90,17 @@ function renderOrders() {
     filtered.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
     listEl.innerHTML = filtered.map(order => {
-        const source = (order.source || '').toLowerCase();
-        let sourceColor = '#2DB55D';
-        let sourceText = 'POS';
-
-        if (source.includes('yemeksepeti')) { sourceColor = '#D42127'; sourceText = 'YS'; }
-        else if (source.includes('getir')) { sourceColor = '#5D3EBC'; sourceText = 'GY'; }
-        else if (source.includes('trendyol')) { sourceColor = '#F27A1A'; sourceText = 'TY'; }
-        else if (source.includes('migros')) { sourceColor = '#F58220'; sourceText = 'MY'; }
-        else if (source.includes('tiklagelsin')) { sourceColor = '#FF0060'; sourceText = 'TG'; }
-        else if (source.includes('qr')) { sourceColor = '#3b82f6'; sourceText = 'QR'; }
+        let source = (order.source || order.platform || '').toLowerCase();
+        let displaySource = order.source || order.platform || (order.type === 'paket' ? 'POSLY PAKET' : order.type === 'gelal' ? 'GEL AL' : 'MASA');
+        let logoSrc = 'icons/icon-192.svg'; // Default POS logo
+        
+        if (source.includes('yemeksepeti')) logoSrc = 'img/integrations/yemeksepeti.png';
+        else if (source.includes('getir')) logoSrc = 'img/integrations/getir.png';
+        else if (source.includes('trendyol')) logoSrc = 'img/integrations/trendyol.png';
+        else if (source.includes('migros')) logoSrc = 'img/integrations/migros.png';
+        else if (source.includes('tiklagelsin')) logoSrc = 'img/integrations/tiklagelsin.png';
+        else if (source.includes('migros')) logoSrc = 'img/integrations/migros.png';
+        else if (source.includes('tiklagelsin')) logoSrc = 'img/integrations/tiklagelsin.png';
 
         const statusClass = getStatusClass(order.status);
         const time = formatOrderTime(order.createdAt || order.date);
@@ -108,7 +109,7 @@ function renderOrders() {
 
         return `
             <div class="order-card" onclick="showOrderDetail('${order.id}')">
-                <div class="order-source-icon" style="background:${sourceColor}">${sourceText}</div>
+                <img src="${logoSrc}" class="order-source-img" alt="${displaySource}">
                 <div class="order-info">
                     <div class="order-id">#${displayId}${customer ? ` • ${customer}` : ''}</div>
                     <div class="order-meta">
@@ -132,14 +133,36 @@ function showOrderDetail(orderId) {
     const modalContent = document.getElementById('modal-content');
     const items = order.items || [];
     const customer = order.customerName || order.customer?.name || 'Müşteri';
-    const source = order.source || 'Lokal';
+    const source = order.source || order.platform || (order.type === 'paket' ? 'POSLY PAKET' : order.type === 'gelal' ? 'GEL AL' : 'MASA');
     const time = formatOrderTime(order.createdAt || order.date);
+    const phone = order.customerPhone || '';
+    const address = order.customerAddress || '';
+    const payment = order.paymentMethod || '';
 
     modalContent.innerHTML = `
         <div class="order-detail-header">
             <h3 style="font-size:18px;font-weight:800;margin-bottom:4px">#${(order.id || '').toString().slice(-6)}</h3>
             <p style="color:var(--text-secondary);font-size:13px">${customer} • ${source} • ${time}</p>
             <span class="order-status ${getStatusClass(order.status)}" style="margin-top:8px">${order.status || 'Bekliyor'}</span>
+        </div>
+
+        <div class="order-detail-contact">
+            ${phone ? `
+                <div class="contact-row">
+                    <span class="contact-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </span>
+                    <a href="tel:${phone}" class="contact-value">${phone}</a>
+                </div>
+            ` : ''}
+            ${address ? `
+                <div class="contact-row">
+                    <span class="contact-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </span>
+                    <span class="contact-value">${address}</span>
+                </div>
+            ` : ''}
         </div>
 
         <h4 style="font-size:14px;font-weight:700;margin-bottom:10px">Sipariş Detayı</h4>
@@ -160,6 +183,10 @@ function showOrderDetail(orderId) {
             <strong>${formatCurrency(order.total || 0)}</strong>
         </div>
 
+        <div class="order-detail-meta" style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border);">
+             ${payment ? `<div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom: 4px;"><span>Ödeme</span> <strong>${payment}</strong></div>` : ''}
+        </div>
+
         ${order.status !== 'Teslim Edildi' && order.status !== 'Tamamlandı' && order.status !== 'İptal' ? `
         <div class="order-status-btns">
             <button class="btn-status ${order.status === 'Hazırlanıyor' ? 'active' : ''}" onclick="updateOrderStatus('${order.id}', 'Hazırlanıyor')">
@@ -172,8 +199,6 @@ function showOrderDetail(orderId) {
                 ✅ Teslim
             </button>
         </div>` : ''}
-
-        ${order.paymentMethod ? `<p style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary)">Ödeme: ${order.paymentMethod}</p>` : ''}
     `;
 
     openModal();
