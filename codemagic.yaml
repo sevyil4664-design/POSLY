@@ -32,19 +32,24 @@ workflows:
           echo "=== Workspace içeriği ==="
           ls -la ios/App/App.xcworkspace/
 
-      - name: Gerçek Cihaz İçin Derle ve İmzala
+      - name: Gerçek Cihaz İçin Derle (İmzasız)
         script: |
           set -e
-          
-          # Info.plist dosyasında uygulamanın görünen adını (CFBundleDisplayName) güncelliyoruz.
-          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName Posly Yeni Nesil Pos" ios/App/App/Info.plist || \
-          /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string Posly Yeni Nesil Pos" ios/App/App/Info.plist
-
-          xcode-project build-ipa \
-            --workspace "ios/App/App.xcworkspace" \
-            --scheme "App" \
-            --config "Release" \
-            --archive-flags="-destination 'generic/platform=iOS'"
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            ONLY_ACTIVE_ARCH=NO \
+            clean build \
+            BUILD_DIR=$CM_BUILD_DIR/build_output \
+            | tee build_log.txt
 
           
           if [ -z "$APP_PATH" ]; then
