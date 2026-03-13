@@ -1,8 +1,7 @@
 node_modules/
 dist/
-ios/App/public/
-ios/App/build/
 .DS_Store
 *.log
 .env
 .capacitor/
+ios/App/Pods/
