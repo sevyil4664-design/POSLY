@@ -12,15 +12,20 @@ workflows:
         script: npm install
       - name: Capacitor Senkronizasyonu
         script: npx cap sync ios
-      - name: IPA Oluştur
+      - name: Gerçek Cihaz İçin Derle ve Paketle
         script: |
-          xcodebuild build -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO
-          # IPA paketleme
-          mkdir -p build/ios/ipa
-          cd build/ios/ipa
-          mkdir Payload
-          # Dosyayı bul ve Payload içine kopyala
-          find $HOME/Library/Developer/Xcode/DerivedData -name "App.app" -type d -exec cp -r {} Payload/ \;
-          zip -r Posly.ipa Payload
+          # 1. Eski simülatör dosyalarını temizle
+          xcodebuild clean -workspace ios/App/App.xcworkspace -scheme App
+          
+          # 2. Sadece GERÇEK iPhone için (Release) derle
+          xcodebuild build -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=""
+          
+          # 3. Payload klasörünü oluştur ve uygulamayı içine kopyala
+          mkdir -p build_ipa/Payload
+          find $HOME/Library/Developer/Xcode/DerivedData -path "*/Build/Products/Release-iphoneos/App.app" -exec cp -r {} build_ipa/Payload/ \;
+          
+          # 4. Dosyayı Sideloadly için IPA'ya çevir
+          cd build_ipa
+          zip -q -r Posly_Gercek.ipa Payload
     artifacts:
-      - build/ios/ipa/Posly.ipa
+      - build_ipa/Posly_Gercek.ipa
