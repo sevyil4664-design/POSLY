@@ -9,23 +9,82 @@ workflows:
       cocoapods: default
     scripts:
       - name: Bağımlılıkları Yükle
-        script: npm install
-      - name: Capacitor Senkronizasyonu
-        script: npx cap sync ios
-      - name: Gerçek Cihaz İçin Derle ve Paketle
         script: |
-          # 1. Eski simülatör dosyalarını temizle
-          xcodebuild clean -workspace ios/App/App.xcworkspace -scheme App
+          npm install
+
+      - name: Capacitor Sync
+        script: |
+          npx cap sync ios
+
+      - name: CocoaPods Yükle
+        script: |
+          cd ios/App
+          pod install --repo-update
+
+      - name: Derleme Öncesi Kontrol
+        script: |
+          echo "=== www/ dosya sayısı ==="
+          find www -type f | wc -l
+          echo "=== ios/App/App/public/ dosya sayısı ==="
+          find ios/App/App/public -type f | wc -l
+          echo "=== ios/App/Pods/ var mı? ==="
+          ls -la ios/App/Pods/ | head -10
+          echo "=== Workspace içeriği ==="
+          ls -la ios/App/App.xcworkspace/
+
+      - name: Gerçek Cihaz İçin Derle
+        script: |
+          set -e
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            ONLY_ACTIVE_ARCH=NO \
+            clean build \
+            BUILD_DIR=$CM_BUILD_DIR/build_output \
+            | tee build_log.txt
+
+      - name: IPA Oluştur
+        script: |
+          set -e
+          echo "=== Build output kontrol ==="
+          find $CM_BUILD_DIR/build_output -name "App.app" -type d
           
-          # 2. Sadece GERÇEK iPhone için (Release) derle
-          xcodebuild build -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=""
+          APP_PATH=$(find $CM_BUILD_DIR/build_output -name "App.app" -type d | head -1)
           
-          # 3. Payload klasörünü oluştur ve uygulamayı içine kopyala
-          mkdir -p build_ipa/Payload
-          find $HOME/Library/Developer/Xcode/DerivedData -path "*/Build/Products/Release-iphoneos/App.app" -exec cp -r {} build_ipa/Payload/ \;
+          if [ -z "$APP_PATH" ]; then
+            echo "HATA: App.app bulunamadı! DerivedData'da arıyorum..."
+            APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "App.app" -path "*/Release-iphoneos/*" -type d | head -1)
+          fi
           
-          # 4. Dosyayı Sideloadly için IPA'ya çevir
-          cd build_ipa
-          zip -q -r Posly_Gercek.ipa Payload
+          if [ -z "$APP_PATH" ]; then
+            echo "HATA: App.app hiçbir yerde bulunamadı!"
+            exit 1
+          fi
+          
+          echo "App.app bulundu: $APP_PATH"
+          echo "App.app boyutu:"
+          du -sh "$APP_PATH"
+          
+          echo "App.app içeriği:"
+          ls -la "$APP_PATH/"
+          
+          mkdir -p ipa_output/Payload
+          cp -r "$APP_PATH" ipa_output/Payload/
+          
+          cd ipa_output
+          zip -q -r ../Posly.ipa Payload
+          
+          echo "=== IPA boyutu ==="
+          ls -lh ../Posly.ipa
+
     artifacts:
-      - build_ipa/Posly_Gercek.ipa
+      - Posly.ipa
+      - build_log.txt
