@@ -15,11 +15,12 @@ workflows:
       - name: IPA Oluştur
         script: |
           xcodebuild build -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO
-          # IPA paketleme adımları
+          # IPA paketleme
           mkdir -p build/ios/ipa
           cd build/ios/ipa
           mkdir Payload
-          cp -r $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Release-iphoneos/App.app Payload
+          # Dosyayı bul ve Payload içine kopyala
+          find $HOME/Library/Developer/Xcode/DerivedData -name "App.app" -type d -exec cp -r {} Payload/ \;
           zip -r Posly.ipa Payload
     artifacts:
       - build/ios/ipa/Posly.ipa
