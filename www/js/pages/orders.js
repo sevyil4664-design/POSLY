@@ -90,12 +90,15 @@ function renderOrders() {
     filtered.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
     listEl.innerHTML = filtered.map(order => {
-        const source = (order.source || '').toLowerCase();
+        let source = (order.source || order.platform || '').toLowerCase();
+        let displaySource = order.source || order.platform || (order.type === 'paket' ? 'POSLY PAKET' : order.type === 'gelal' ? 'GEL AL' : 'MASA');
         let logoSrc = 'icons/icon-192.svg'; // Default POS logo
         
         if (source.includes('yemeksepeti')) logoSrc = 'img/integrations/yemeksepeti.png';
         else if (source.includes('getir')) logoSrc = 'img/integrations/getir.png';
         else if (source.includes('trendyol')) logoSrc = 'img/integrations/trendyol.png';
+        else if (source.includes('migros')) logoSrc = 'img/integrations/migros.png';
+        else if (source.includes('tiklagelsin')) logoSrc = 'img/integrations/tiklagelsin.png';
         else if (source.includes('migros')) logoSrc = 'img/integrations/migros.png';
         else if (source.includes('tiklagelsin')) logoSrc = 'img/integrations/tiklagelsin.png';
 
@@ -106,7 +109,7 @@ function renderOrders() {
 
         return `
             <div class="order-card" onclick="showOrderDetail('${order.id}')">
-                <img src="${logoSrc}" class="order-source-img" alt="${source}">
+                <img src="${logoSrc}" class="order-source-img" alt="${displaySource}">
                 <div class="order-info">
                     <div class="order-id">#${displayId}${customer ? ` • ${customer}` : ''}</div>
                     <div class="order-meta">
@@ -130,7 +133,7 @@ function showOrderDetail(orderId) {
     const modalContent = document.getElementById('modal-content');
     const items = order.items || [];
     const customer = order.customerName || order.customer?.name || 'Müşteri';
-    const source = order.source || 'Lokal';
+    const source = order.source || order.platform || (order.type === 'paket' ? 'POSLY PAKET' : order.type === 'gelal' ? 'GEL AL' : 'MASA');
     const time = formatOrderTime(order.createdAt || order.date);
     const phone = order.customerPhone || '';
     const address = order.customerAddress || '';
