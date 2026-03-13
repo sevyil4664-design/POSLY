@@ -51,25 +51,30 @@ workflows:
             BUILD_DIR=$CM_BUILD_DIR/build_output \
             | tee build_log.txt
 
+      - name: IPA Oluştur
+        script: |
+          set +e
+          echo "=== Build output kontrol ==="
+          APP_PATH=$(find $CM_BUILD_DIR/build_output -name "*.app" -type d | head -1)
           
           if [ -z "$APP_PATH" ]; then
-            echo "HATA: App.app hiçbir yerde bulunamadı!"
+            echo "HATA: App.app bulunamadı! DerivedData'da arıyorum..."
+            APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "*.app" -path "*/Release-iphoneos/*" -type d | head -1)
+          fi
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "HATA: App.app hiçbir yerde bulunamadı! Klasörü tarıyoruz:"
+            ls -laR $CM_BUILD_DIR/build_output || true
             exit 1
           fi
           
           echo "App.app bulundu: $APP_PATH"
-          echo "App.app boyutu:"
-          du -sh "$APP_PATH"
-          
-          echo "App.app içeriği:"
-          ls -la "$APP_PATH/"
-          
           mkdir -p ipa_output/Payload
           cp -r "$APP_PATH" ipa_output/Payload/
           
           cd ipa_output
           zip -q -r ../Posly.ipa Payload
-          
+
           echo "=== IPA boyutu ==="
           ls -lh ../Posly.ipa
 
