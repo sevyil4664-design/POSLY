@@ -380,8 +380,8 @@ select,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--safe-top) 20px 0;
-    height: calc(var(--nav-height) + var(--safe-top));
+    padding: calc(var(--safe-top) * 0.7) 20px 0;
+    height: calc(var(--nav-height) + (var(--safe-top) * 0.7));
     background: rgba(10, 10, 15, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -519,8 +519,8 @@ select,
     display: flex;
     align-items: stretch;
     justify-content: space-around;
-    padding: 0 0 var(--safe-bottom) 0;
-    height: calc(var(--tab-height) + var(--safe-bottom));
+    padding: 0 0 calc(var(--safe-bottom) * 0.5) 0;
+    height: calc(var(--tab-height) + (var(--safe-bottom) * 0.5));
     background: rgba(10, 10, 15, 0.92);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
