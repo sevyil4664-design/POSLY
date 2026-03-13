@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="512" height="512" rx="102" fill="url(#iconGrad512)"/>
+    <text x="256" y="215" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-weight="900" font-size="130">POS</text>
+    <text x="256" y="340" text-anchor="middle" fill="#F5733D" font-family="Inter, sans-serif" font-weight="900" font-size="130">LY</text>
+    <defs>
+        <linearGradient id="iconGrad512" x1="0" y1="0" x2="512" y2="512">
+            <stop stop-color="#2DB55D"/>
+            <stop offset="1" stop-color="#1a8a42"/>
+        </linearGradient>
+    </defs>
+</svg>
