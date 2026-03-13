@@ -32,37 +32,20 @@ workflows:
           echo "=== Workspace içeriği ==="
           ls -la ios/App/App.xcworkspace/
 
-      - name: Gerçek Cihaz İçin Derle
+      - name: Gerçek Cihaz İçin Derle ve İmzala
         script: |
           set -e
-          xcodebuild \
-            -workspace ios/App/App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -sdk iphoneos \
-            -destination "generic/platform=iOS" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            CODE_SIGN_ENTITLEMENTS="" \
-            ONLY_ACTIVE_ARCH=NO \
-            clean build \
-            BUILD_DIR=$CM_BUILD_DIR/build_output \
-            | tee build_log.txt
+          
+          # Info.plist dosyasında uygulamanın görünen adını (CFBundleDisplayName) güncelliyoruz.
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName Posly Yeni Nesil Pos" ios/App/App/Info.plist || \
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string Posly Yeni Nesil Pos" ios/App/App/Info.plist
 
-      - name: IPA Oluştur
-        script: |
-          set -e
-          echo "=== Build output kontrol ==="
-          find $CM_BUILD_DIR/build_output -name "App.app" -type d
-          
-          APP_PATH=$(find $CM_BUILD_DIR/build_output -name "App.app" -type d | head -1)
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "HATA: App.app bulunamadı! DerivedData'da arıyorum..."
-            APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "App.app" -path "*/Release-iphoneos/*" -type d | head -1)
-          fi
+          xcode-project build-ipa \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App" \
+            --config "Release" \
+            --archive-flags="-destination 'generic/platform=iOS'"
+
           
           if [ -z "$APP_PATH" ]; then
             echo "HATA: App.app hiçbir yerde bulunamadı!"
